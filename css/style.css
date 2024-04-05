@@ -1,0 +1,103 @@
+/*******************
+General
+*******************/
+body {
+  background: #181818;
+  color: #D0D0D0;
+  font-size: 1.25rem;
+  font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+
+header {
+  /* font: 1.5rem bolder; */
+  font-size: 2rem;
+}
+
+/*******************
+Sentences Table
+*******************/
+.sentence-table {
+  display: table;
+  table-layout: auto;
+  margin: 2rem;
+  border-collapse: collapse;
+  min-width: 80vw;
+  flex: 1;
+  background: #252528;
+  /* padding: 0.5rem; */
+  width: 90%;
+  margin: 0 auto;
+  border-radius: 8px;
+}
+
+.sentence-table thead {
+  background: black;
+}
+
+.sentence-table-body tr > td:nth-of-type(1) {
+  background: #3333ff;
+}
+
+.sentence-table td {
+  padding: 0.25rem 0.5rem;
+  vertical-align: middle;
+  text-align: center;
+  margin: 5px 0;
+}
+
+.sentence-table input[type="checkbox"] {
+  width: 2rem;
+  height: 2rem;
+  background: blue;
+}
+
+.sentence-table td img {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.selected-row {
+  background: #454585;
+}
+
+.sentence-table > tbody > tr:hover {
+  /* backdrop-filter: brightness(140%) hue-rotate(10deg); */
+  background: #454545;
+  filter: brightness(115%);
+  filter: hue-rotate(30deg);
+  font-weight: bold;
+}
+
+/*******************
+Buttons
+*******************/
+.btn {
+  font-weight: bolder;
+  font-size: 2rem;
+  padding: 0.50rem;
+  margin: 0.25rem;
+  border-style: solid;
+  border-width: 3px;
+  border-color: white;
+  border-radius: 10px;
+  color: white;
+  cursor: pointer;
+}
+
+.load-btn {
+  background: green;
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+}
+
+
+/*******************
+Misc
+*******************/
+kbd {
+  background: #FCC234;
+  color: #222;
+  padding: 0.1rem 0.2rem;
+}
+
