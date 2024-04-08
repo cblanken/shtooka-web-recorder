@@ -27,7 +27,7 @@ function record_sentence(id, row) {
     navigator.mediaDevices
       .getUserMedia({audio: true})
       .then((stream) => {
-        const mediaRecorder = new MediaRecorder(stream);
+        const mediaRecorder = new MediaRecorder(stream, { mimeType: "audio/webm;codecs=opus"});
 
         let chunks = [];
         mediaRecorder.ondataavailable = (e) => {
@@ -46,7 +46,7 @@ function record_sentence(id, row) {
 
         mediaRecorder.onstop = (e) => {
           let audio = row.querySelector("audio");
-          const blob = new Blob(chunks, { type: "audio/ogg; codecs=flac" })
+          const blob = new Blob(chunks, { type: "audio/webm;codecs=opus" })
           audio.src = window.URL.createObjectURL(blob);
           row.querySelector(".export-toggle").checked = true;
           set_sentence_download_link(row);
@@ -94,13 +94,10 @@ async function handle_export() {
     text=row.querySelector(".sentence").textContent.trim(),
     audio_src=row.querySelector("audio").src,
   ));
+
+  // Construct archive (.zip) of recorded sentences
   for (let sentence of sentences) {
     console.log(sentence.audio_src);
-    // set_download_link(sentence.audio_src);
-    // let file = await fetch(sentence.audio_src)
-    //   .then(r => r.blob())
-    //   .then(blob => new File([blob], `${id} - ${sentence.text}.flac`, { type: "audio/ogg"}))
-    // console.log(file);
   }
 }
 
@@ -142,16 +139,11 @@ function add_sentence_row(parent_table, id, sentence_text) {
   export_toggle.classList.add("export-toggle");
 
   // Download button
-  // let download_btn = document.createElement("img");
-  // download_btn.setAttribute("src", "img/download.svg");
-  // download_btn.classList.add("btn");
-  // download_btn.classList.add("download-btn");
   let download_anchor = document.createElement("a");
-  download_anchor.setAttribute("download", `${sentence_text}.flac`)
+  download_anchor.setAttribute("download", `${sentence_text}.webm`)
   download_anchor.setAttribute("target", "_blank")
   download_anchor.classList.add("download-btn-anchor");
   download_anchor.textContent = "Download";
-  // download_btn.appendChild(download_anchor);
 
   // Construct sentence row
   let row_ele = document.createElement("tr");

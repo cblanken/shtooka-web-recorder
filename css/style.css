@@ -109,6 +109,13 @@ Buttons
   background: yellow;
 }
 
+.export-btn:disabled {
+  filter: brightness(0.8) saturate(0.8);
+  background: #888;
+  user-select: none;
+  pointer-events: none;
+}
+
 /*******************
 Misc
 *******************/
