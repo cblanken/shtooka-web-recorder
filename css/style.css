@@ -70,6 +70,10 @@ Sentences Table
 /*******************
 Buttons
 *******************/
+.buttons {
+  display: flex;
+}
+
 .btn {
   font-weight: bolder;
   font-size: 1rem;
@@ -79,6 +83,10 @@ Buttons
   background: red;
   border-radius: 16px;
   cursor: pointer;
+  width: fit-content;
+  max-width: 200px;
+  overflow-x: hidden;
+  color: #222;
 }
 
 .btn:active {
@@ -91,6 +99,7 @@ Buttons
 
 .load-btn {
   background: #7EC7EC;
+  position: relative;
 }
 
 .start-btn {
@@ -109,7 +118,7 @@ Buttons
   background: yellow;
 }
 
-.export-btn:disabled {
+.btn:disabled {
   filter: brightness(0.8) saturate(0.8);
   background: #888;
   user-select: none;
@@ -134,3 +143,15 @@ kbd {
   padding: 0.1rem 0.2rem;
 }
 
+/*******************
+Inputs
+*******************/
+input[type="file"] {
+  position: absolute;
+  visibility: hidden;
+  overflow: hidden;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}

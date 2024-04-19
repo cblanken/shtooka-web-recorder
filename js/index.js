@@ -194,9 +194,10 @@ Initialization after page load
 document.addEventListener("DOMContentLoaded", (e) => {
   // Load sentences button
   let load_btn = document.querySelector(".load-btn");
-  load_btn?.addEventListener("click", async e => {
+  let load_file_input = document.querySelector("#shtooka-file");
+  load_file_input?.addEventListener("input", async e => {
     console.log("Loading sentences...");
-    let files = document.querySelector("#shtooka-file")?.files
+    let files = load_file_input?.files
     if (files.length > 0) {
       let sentences = await load_shtooka_files(files);
       console.table(sentences);
