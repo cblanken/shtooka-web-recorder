@@ -27,23 +27,39 @@ function record_sentence(id, row) {
     navigator.mediaDevices
       .getUserMedia({audio: true})
       .then((stream) => {
-        const mediaRecorder = new MediaRecorder(stream, { mimeType: "audio/webm;codecs=opus"});
+        /*
+         *  # AUDIO RECORDING AND PROCESSING
+         *  1. Setup Audio Context
+         *  2. Setup MediaRecorder
+         *  3. Link nodes
+         *  4. Process sound (volume -> cut silence before -> cut silence after)
+         */
+        let gain = document.querySelector("#audio-gain")?.value || 0.5;
 
+        const ctx = new AudioContext();
+        const source = ctx.createMediaStreamSource(stream);
+        const dest = ctx.createMediaStreamDestination();
+        const mediaRecorder = new MediaRecorder(dest.stream, { mimeType: "audio/webm;codecs=opus"});
+        const gainNode = new GainNode(ctx, {
+          gain: gain,
+        });
+        const delayNode = new DelayNode(ctx, {
+          delayTime: 0,
+          maxDelayTime: 1,
+        })
+
+        source.connect(gainNode);
+        gainNode.connect(delayNode);
+        delayNode.connect(dest);
+
+        // Configure MediaRecorder
         let chunks = [];
         mediaRecorder.ondataavailable = (e) => {
           chunks.push(e.data);
         };
 
-        // This should named and removed when invoked multiple times on 
+        // This should be named and removed when invoked multiple times on 
         // the same stop button
-        let stop_btn = row.querySelector(".stop-btn");
-        stop_btn.addEventListener("click", e => {
-          mediaRecorder.stop();
-          console.log(`Recording stopped for: #${id}`)
-          row.classList.remove("recording-active");
-          console.log(mediaRecorder.state);
-        });
-
         mediaRecorder.onstop = (e) => {
           let audio = row.querySelector("audio");
           const blob = new Blob(chunks, { type: "audio/webm;codecs=opus" })
@@ -52,9 +68,15 @@ function record_sentence(id, row) {
           set_sentence_download_link(row);
         };
 
+        let stop_btn = row.querySelector(".stop-btn");
+        stop_btn.addEventListener("click", e => {
+          mediaRecorder.stop();
+          console.log(`Recording stopped for: #${id}`)
+          row.classList.remove("recording-active");
+        });
+
         mediaRecorder.start()
         row.classList.add("recording-active");
-        console.log(mediaRecorder.state);
       })
       .catch((err) => {
         console.error(`> The following getUserMedia error occurred: ${err}`);
@@ -164,8 +186,13 @@ function add_sentence_row(parent_table, id, sentence_text) {
   });
 }
 
+/*
+Initialization after page load
+- Setup primary button interactions (load sentences, export all, )
+- TODO: Setup AudioContext and audio processing nodes
+*/
 document.addEventListener("DOMContentLoaded", (e) => {
-  // Load button
+  // Load sentences button
   let load_btn = document.querySelector(".load-btn");
   load_btn?.addEventListener("click", async e => {
     console.log("Loading sentences...");
@@ -179,8 +206,14 @@ document.addEventListener("DOMContentLoaded", (e) => {
     }
   })
 
+  // Volume slider
+  let gain_slider = document.querySelector("#audio-gain");
+  gain_slider.onchange = (e) => {
+    console.log(`GAIN: ${gain_slider.value}`);
+    gain = gain_slider.value;
+  };
+
   // Export button
   let export_btn = document.querySelector(".export-btn");
   export_btn?.addEventListener("click", handle_export);
 });
-
