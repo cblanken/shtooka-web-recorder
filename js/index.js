@@ -38,23 +38,11 @@ function record_sentence(id, row) {
          *  3. Link nodes
          *  4. Process sound (volume -> cut silence before -> cut silence after)
          */
-        let gain = document.querySelector("#audio-gain")?.value || 0.5;
 
         const ctx = new AudioContext();
         const source = ctx.createMediaStreamSource(stream);
         const dest = ctx.createMediaStreamDestination();
         const mediaRecorder = new MediaRecorder(dest.stream, { mimeType: "audio/webm;codecs=opus"});
-        const gainNode = new GainNode(ctx, {
-          gain: gain,
-        });
-        const delayNode = new DelayNode(ctx, {
-          delayTime: 0,
-          maxDelayTime: 1,
-        })
-
-        source.connect(gainNode);
-        gainNode.connect(delayNode);
-        delayNode.connect(dest);
 
         // Configure MediaRecorder
         let chunks = [];
@@ -72,6 +60,31 @@ function record_sentence(id, row) {
           set_sentence_download_link(row);
         };
 
+        // Audio nodes
+        let gain = document.querySelector("#audio-gain")?.value || 0.5;
+        const gainNode = new GainNode(ctx, {
+          gain: gain,
+        });
+        const delayNode = new DelayNode(ctx, {
+          delayTime: 0,
+          maxDelayTime: 1,
+        });
+        compressorNode = new DynamicsCompressorNode(ctx, {
+          threshold: -50,
+          knee: 40,
+          ratio: 12,
+          reduction: -20,
+          attack: 0,
+          release: 0.25,
+        });
+
+        // Audio pipeline
+        source.connect(gainNode);
+        gainNode.connect(delayNode);
+        delayNode.connect(compressorNode);
+        compressorNode.connect(dest);
+
+        // Setup button to stop recording
         let stop_btn = row.querySelector(".stop-btn");
         stop_btn.addEventListener("click", e => {
           mediaRecorder.stop();
@@ -79,8 +92,8 @@ function record_sentence(id, row) {
           row.classList.remove("recording-active");
         });
 
-        mediaRecorder.start()
         row.classList.add("recording-active");
+        mediaRecorder.start()
       })
       .catch((err) => {
         console.error(`> The following getUserMedia error occurred: ${err}`);
