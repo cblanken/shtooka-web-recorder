@@ -94,6 +94,7 @@ function set_download_all_link(href) {
 function set_download_link(row, href) {
   download_anchor = row.querySelector(".download-btn-anchor");
   download_anchor.href = href;
+  download_anchor.textContent = "Download";
 }
 
 function set_sentence_download_link(row) {
@@ -165,7 +166,6 @@ function add_sentence_row(parent_table, id, sentence_text) {
   download_anchor.setAttribute("download", `${sentence_text}.webm`)
   download_anchor.setAttribute("target", "_blank")
   download_anchor.classList.add("download-btn-anchor");
-  download_anchor.textContent = "Download";
 
   // Construct sentence row
   let row_ele = document.createElement("tr");

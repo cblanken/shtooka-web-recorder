@@ -143,6 +143,10 @@ kbd {
   padding: 0.1rem 0.2rem;
 }
 
+a:link {
+  color: #F7A71B;
+}
+
 /*******************
 Inputs
 *******************/
