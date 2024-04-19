@@ -7,15 +7,19 @@ class Sentence {
 }
 
 async function load_shtooka_files(files) {
-  let text = await files?.item(0)?.text() || "";
-  let lines = text.trim().split("\n")
   let sentences = new Map();
-  if (lines.length > 0) {
-    lines.forEach(line => {
-      let [id, line_text] = line.split("-");
-      add_sentence_row(document.querySelector(".sentence-table-body"), id, line_text.trim())
-      sentences.set(id, line_text.trim());
-    })
+  try {
+    let text = await files?.item(0)?.text() || "";
+    let lines = text.trim().split("\n")
+    if (lines.length > 0) {
+      lines.forEach(line => {
+        let [id, line_text] = line.split("-");
+        add_sentence_row(document.querySelector(".sentence-table-body"), id, line_text.trim())
+        sentences.set(id, line_text.trim());
+      })
+    }
+  } catch(e) {
+    alert(`Unable to load file: "${files?.item(0)?.name}". It may have an invalid format. Please try again with a properly formatted file.`)
   }
 
   return sentences;
