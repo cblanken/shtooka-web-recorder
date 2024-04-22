@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import SentenceImporter from './components/SentenceImporter.vue'
+
+const importedSentences = defineModel()
 </script>
 
 <template>
@@ -9,7 +11,10 @@ import SentenceImporter from './components/SentenceImporter.vue'
   </header>
 
   <main>
-    <SentenceImporter />
+    <SentenceImporter v-model="importedSentences" />
+    <div v-if="importedSentences">
+      <li v-for="[id, sentence] in importedSentences" :key="id">{{ id }} - {{ sentence }}</li>
+    </div>
   </main>
 
   <!-- Render loaded sentence items -->
