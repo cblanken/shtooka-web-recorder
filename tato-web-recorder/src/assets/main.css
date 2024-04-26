@@ -19,6 +19,18 @@
   .input-load-file {
     @apply file:py-2 file:px-4 file:rounded-full file:border-0 file:hover:cursor-pointer file:hover:bg-violet-500 file:bg-violet-600 file:text-white file:font-semibold;
   }
+
+  .table {
+    @apply table-auto m-2 text-xl text-center;
+  }
+
+  .table > thead {
+    @apply bg-slate-700;
+  }
+
+  .table > thead > th {
+    @apply px-2;
+  }
 }
 
 #app {

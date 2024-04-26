@@ -3,8 +3,10 @@ import DownloadButton from './components/DownloadAllButton.vue'
 import RecordButton from './components/RecordButton.vue'
 import SentenceImporter from './components/SentenceImporter.vue'
 import SentenceItem from './components/SentenceItem.vue'
+import { Sentence } from './types/sentence'
+import { ref } from 'vue'
 
-const importedSentences = defineModel()
+const sentences = ref(new Array<Sentence>())
 
 /*
  *  # AUDIO RECORDING AND PROCESSING
@@ -16,21 +18,21 @@ const importedSentences = defineModel()
 
 const ctx = new AudioContext()
 const dest = ctx.createMediaStreamDestination()
-let mediaRecorder, activeSentenceAudio
+let mediaRecorder: MediaRecorder, activeSentenceAudio: string
 if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
   // TODO: add toast message
   console.log('> getUserMedia supported')
   mediaRecorder = new MediaRecorder(dest.stream, { mimeType: 'audio/webm;codecs=opus' })
 
   // Configure MediaRecorder
-  let chunks = []
+  let chunks: Blob[] = []
   mediaRecorder.ondataavailable = (e) => {
     chunks.push(e.data)
   }
 
   mediaRecorder.onstop = () => {
     const blob = new Blob(chunks, { type: 'audio/webm;codecs=opus' })
-    activeSentenceAudio.src = window.URL.createObjectURL(blob)
+    activeSentenceAudio = window.URL.createObjectURL(blob)
   }
 
   navigator.mediaDevices
@@ -93,12 +95,18 @@ if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       <RecordButton />
       <DownloadButton />
     </div>
-    <SentenceImporter v-model="importedSentences" />
-    <div class="m-2 text-xl" v-if="importedSentences">
-      <li class="list-none" v-for="[id, sentence] in importedSentences" :key="id">
-        <SentenceItem :id="id" :sentenceText="sentence" />
-      </li>
-    </div>
+    <SentenceImporter @add_sentences="(s: any[]) => (sentences = s)" />
+    <table class="table" v-if="sentences.length > 0">
+      <thead>
+        <th>ID</th>
+        <th>Sentence</th>
+        <th>Audio</th>
+        <th>Export</th>
+      </thead>
+      <tr v-for="sentence in sentences" :key="sentence.id">
+        <SentenceItem :id="sentence.id" :text="sentence.text" />
+      </tr>
+    </table>
   </main>
 
   <!-- Render loaded sentence items -->

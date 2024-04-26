@@ -1,9 +1,9 @@
 export class Sentence {
-  text: String
-  id: Number
-  audio_src: URL
+  id: string
+  text: string
+  audio_src: URL | null
 
-  constructor(id: Number, sentence: String, audio_src: URL) {
+  constructor(id: string, sentence: string, audio_src: URL | null = null) {
     this.id = id
     this.text = sentence
     this.audio_src = audio_src

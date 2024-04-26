@@ -1,5 +1,5 @@
 import { reactive } from 'vue'
-import { RecordingState } from '../types/audio'
+import { RecordingState } from './types/audio'
 
 export const store = reactive({
   recordingState: RecordingState.Idle,

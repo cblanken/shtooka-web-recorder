@@ -3,21 +3,34 @@ import { URL } from 'node:url';
 // TODO: load alternative file formats
 // TODO: read data from Tatoeba API
 
-const model = defineModel()
+// const props = defineProps({
+//   sentences: { type: Array<Sentence>, required: true },
+// })
+
+import { Sentence } from '../types/sentence'
+// let sentences = defineModel('sentences', { type: Array<Sentence>, default: [] })
+
+const emit = defineEmits<{
+  add_sentences: any[]
+}>()
 
 async function loadShtookaFile(e: Event) {
   let target = e.target as HTMLInputElement
   let file = target?.files?.item(0)
-  let sentences = new Map()
   try {
     let text = await file?.text()
     if (text) {
+      let sentences = new Array<Sentence>()
       let lines = text.trim().split('\n')
       if (lines.length > 0) {
         lines.forEach((line: string) => {
           let [id, line_text] = line.split('-')
-          sentences.set(id.trim(), line_text.trim())
+          let sentence = new Sentence(id.trim(), line_text.trim())
+          sentences.push(sentence)
         })
+
+        console.log(sentences)
+        emit('add_sentences', sentences)
       }
     }
   } catch (e) {
@@ -25,8 +38,6 @@ async function loadShtookaFile(e: Event) {
       `Unable to load file: "${file?.name}". It may have an invalid format. Please try again with a properly formatted file.`
     )
   }
-
-  model.value = sentences
 }
 </script>
 

@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { store } from './store'
+import { store } from '../store'
 import { RecordingState } from '../types/audio'
 
 const emit = defineEmits(['start', 'stop'])
