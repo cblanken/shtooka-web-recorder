@@ -1,5 +1,5 @@
 <script setup lang="ts"></script>
 
 <template>
-  <div></div>
+  <button class="btn btn-confirm">Download All</button>
 </template>

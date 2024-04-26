@@ -3,6 +3,24 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  .btn {
+    @apply w-fit px-4 py-2 my-2 rounded-full text-lg text-black font-semibold;
+  }
+
+  .btn-confirm {
+    @apply bg-green-500;
+  }
+
+  .btn-cancel {
+    @apply bg-red-600;
+  }
+
+  .input-load-file {
+    @apply file:py-2 file:px-4 file:rounded-full file:border-0 file:hover:cursor-pointer file:hover:bg-violet-500 file:bg-violet-600 file:text-white file:font-semibold;
+  }
+}
+
 #app {
   max-width: 1280px;
   margin: 0 auto;

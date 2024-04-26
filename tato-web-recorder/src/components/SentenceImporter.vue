@@ -5,15 +5,16 @@ import { URL } from 'node:url';
 
 const model = defineModel()
 
-async function loadShtookaFile(e) {
-  let file = e.target?.files?.item(0)
+async function loadShtookaFile(e: Event) {
+  let target = e.target as HTMLInputElement
+  let file = target?.files?.item(0)
   let sentences = new Map()
   try {
     let text = await file?.text()
     if (text) {
       let lines = text.trim().split('\n')
       if (lines.length > 0) {
-        lines.forEach((line) => {
+        lines.forEach((line: string) => {
           let [id, line_text] = line.split('-')
           sentences.set(id.trim(), line_text.trim())
         })
@@ -30,8 +31,12 @@ async function loadShtookaFile(e) {
 </script>
 
 <template>
-  <button @click="$refs.fileInput.click()" class="bg-[#7977FF] px-2 py-1 rounded-md text-lg">
-    <input @change="loadShtookaFile" class="hidden" type="file" ref="fileInput" />
-    Upload Sentences
-  </button>
+  <label class="hidden" for="sentenceFile">Upload File</label>
+  <input
+    id="sentenceFile"
+    @change="loadShtookaFile"
+    class="input-load-file text-xl"
+    type="file"
+    ref="fileInput"
+  />
 </template>
