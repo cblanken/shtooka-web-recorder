@@ -20,7 +20,7 @@ const sentences = ref(new Array<Sentence>())
 
 const ctx = new AudioContext()
 const dest = ctx.createMediaStreamDestination()
-let mediaRecorder: MediaRecorder, activeSentenceAudio: string
+let mediaRecorder: MediaRecorder
 if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
   // TODO: add toast message
   console.log('> getUserMedia supported')
@@ -34,7 +34,14 @@ if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
 
   mediaRecorder.onstop = () => {
     const blob = new Blob(chunks, { type: 'audio/webm;codecs=opus' })
-    activeSentenceAudio = window.URL.createObjectURL(blob)
+    let url = window.URL.createObjectURL(blob)
+    console.log(url)
+    console.log(selectedSentenceID)
+    let audioEle = document.querySelector(
+      `[data-id='${selectedSentenceID.value}'] audio`
+    ) as HTMLAudioElement
+    audioEle.src = url
+    console.log(audioEle)
   }
 
   navigator.mediaDevices
@@ -62,10 +69,11 @@ if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       })
 
       // Audio pipeline
-      source.connect(gainNode)
-      gainNode.connect(delayNode)
-      delayNode.connect(compressorNode)
-      compressorNode.connect(dest)
+      source.connect(dest)
+      // source.connect(gainNode)
+      // gainNode.connect(delayNode)
+      // delayNode.connect(compressorNode)
+      // compressorNode.connect(dest)
     })
     .catch((err) => {
       console.error(`> The following getUserMedia error occurred: ${err}`)
