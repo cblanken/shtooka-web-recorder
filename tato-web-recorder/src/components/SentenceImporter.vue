@@ -3,12 +3,7 @@ import { URL } from 'node:url';
 // TODO: load alternative file formats
 // TODO: read data from Tatoeba API
 
-// const props = defineProps({
-//   sentences: { type: Array<Sentence>, required: true },
-// })
-
 import { Sentence } from '../types/sentence'
-// let sentences = defineModel('sentences', { type: Array<Sentence>, default: [] })
 
 const emit = defineEmits<{
   add_sentences: any[]
@@ -29,7 +24,6 @@ async function loadShtookaFile(e: Event) {
           sentences.push(sentence)
         })
 
-        console.log(sentences)
         emit('add_sentences', sentences)
       }
     }

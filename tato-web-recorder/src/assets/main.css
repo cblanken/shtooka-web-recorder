@@ -8,6 +8,22 @@
     @apply w-fit px-4 py-2 my-2 rounded-full text-lg text-black font-semibold;
   }
 
+  .btn-wide {
+    @apply w-60;
+  }
+
+  .btn-ready {
+    @apply bg-green-400;
+  }
+
+  .btn-stop {
+    @apply bg-red-400;
+  }
+
+  .btn-download {
+    @apply bg-blue-400;
+  }
+
   .btn-confirm {
     @apply bg-green-500;
   }
@@ -30,6 +46,10 @@
 
   .table > thead > th {
     @apply px-2;
+  }
+
+  .selected-sentence {
+    @apply bg-blue-700;
   }
 }
 

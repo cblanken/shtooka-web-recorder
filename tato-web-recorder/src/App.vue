@@ -4,7 +4,9 @@ import RecordButton from './components/RecordButton.vue'
 import SentenceImporter from './components/SentenceImporter.vue'
 import SentenceItem from './components/SentenceItem.vue'
 import { Sentence } from './types/sentence'
+import { RecordingState } from './types/audio'
 import { ref } from 'vue'
+import { store } from './store'
 
 const sentences = ref(new Array<Sentence>())
 
@@ -41,7 +43,8 @@ if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       const source = ctx.createMediaStreamSource(stream)
 
       // Audio nodes
-      let gain = document.querySelector('#audio-gain')?.value || 0.5
+      let gainElement = document.querySelector('#audio-gain') as HTMLInputElement
+      let gain: number = parseInt(gainElement?.value) || 0.5
       const gainNode = new GainNode(ctx, {
         gain: gain
       })
@@ -53,7 +56,7 @@ if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         threshold: -50,
         knee: 40,
         ratio: 12,
-        reduction: -20,
+        // reduction: -20,
         attack: 0,
         release: 0.25
       })
@@ -63,17 +66,6 @@ if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       gainNode.connect(delayNode)
       delayNode.connect(compressorNode)
       compressorNode.connect(dest)
-
-      // // Setup button to stop recording
-      // let stop_btn = row.querySelector('.stop-btn')
-      // stop_btn.addEventListener('click', (e) => {
-      //   mediaRecorder.stop()
-      //   console.log(`Recording stopped for: #${id}`)
-      //   row.classList.remove('recording-active')
-      // })
-
-      // row.classList.add('recording-active')
-      // mediaRecorder.start()
     })
     .catch((err) => {
       console.error(`> The following getUserMedia error occurred: ${err}`)
@@ -81,6 +73,23 @@ if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
 } else {
   console.log('> getUserMedia is not supported in this browser')
   // Todo add toast message
+}
+
+const startRecording = () => {
+  store.recordingState = RecordingState.Recording
+  mediaRecorder.start()
+  console.log('RECORDING STARTED')
+}
+
+const stopRecording = () => {
+  store.recordingState = RecordingState.Idle
+  mediaRecorder.stop()
+  console.log('RECORDING STOPPED')
+}
+
+let selectedSentenceID = ref('')
+const selectSentence = (e: Event) => {
+  selectedSentenceID.value = (e.currentTarget as HTMLLIElement).getAttribute('data-id') || ''
 }
 </script>
 
@@ -92,10 +101,21 @@ if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
 
   <main>
     <div class="flex gap-2">
-      <RecordButton />
+      <RecordButton
+        @start="startRecording"
+        @stop="stopRecording"
+        :recordingState="store.recordingState"
+      />
       <DownloadButton />
     </div>
-    <SentenceImporter @add_sentences="(s: any[]) => (sentences = s)" />
+    <SentenceImporter
+      @add_sentences="
+        (s: any[]) => {
+          sentences = s
+          selectedSentenceID = s[0].id
+        }
+      "
+    />
     <table class="table" v-if="sentences.length > 0">
       <thead>
         <th>ID</th>
@@ -103,13 +123,17 @@ if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         <th>Audio</th>
         <th>Export</th>
       </thead>
-      <tr v-for="sentence in sentences" :key="sentence.id">
-        <SentenceItem :id="sentence.id" :text="sentence.text" />
-      </tr>
+      <tbody>
+        <SentenceItem
+          :class="selectedSentenceID === sentence.id ? 'selected-sentence' : ''"
+          @click="selectSentence"
+          v-for="sentence in sentences"
+          :key="sentence.id"
+          :id="sentence.id"
+          :text="sentence.text"
+        />
+      </tbody>
     </table>
   </main>
-
-  <!-- Render loaded sentence items -->
-
-  <!-- Footer (Tatoeba/Github links) -->
+  <!-- Header (Tatoeba/Github links) -->
 </template>

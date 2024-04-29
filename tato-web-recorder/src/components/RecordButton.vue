@@ -1,25 +1,26 @@
 <script setup lang="ts">
-import { store } from '../store'
 import { RecordingState } from '../types/audio'
 
-const emit = defineEmits(['start', 'stop'])
-function click() {
-  if (store.recordingState === RecordingState.Idle) {
-    // TODO: start recording
-    console.log('start')
-    emit('start')
-    store.recordingState = RecordingState.Recording
-  } else if (store.recordingState === RecordingState.Recording) {
-    // TODO: stop recording
-    console.log('stop')
-    emit('stop')
-    store.recordingState = RecordingState.Idle
-  } else {
-    console.log('do nothin')
-  }
-}
+defineProps({
+  recordingState: { type: Number, required: true }
+})
+defineEmits(['start', 'stop', 'pause'])
 </script>
 
 <template>
-  <button @click="click" class="btn btn-cancel">Record</button>
+  <button
+    v-if="$props.recordingState === RecordingState.Idle"
+    @click="$emit('start')"
+    class="btn btn-ready btn-wide"
+  >
+    Record
+  </button>
+  <button
+    v-else-if="$props.recordingState === RecordingState.Recording"
+    @click="$emit('stop')"
+    class="btn btn-stop btn-wide"
+  >
+    Stop
+  </button>
+  <button v-else @click="$emit('stop')" class="btn btn-stop btn-wide">Stop</button>
 </template>
