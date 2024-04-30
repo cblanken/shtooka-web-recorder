@@ -19,11 +19,11 @@ const sentences = ref(new Array<Sentence>())
  */
 
 const ctx = new AudioContext()
-const dest = ctx.createMediaStreamDestination()
 let mediaRecorder: MediaRecorder
 if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
   // TODO: add toast message
   console.log('> getUserMedia supported')
+  const dest = ctx.createMediaStreamDestination()
   mediaRecorder = new MediaRecorder(dest.stream, { mimeType: 'audio/webm;codecs=opus' })
 
   // Configure MediaRecorder
@@ -34,14 +34,16 @@ if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
 
   mediaRecorder.onstop = () => {
     const blob = new Blob(chunks, { type: 'audio/webm;codecs=opus' })
-    let url = window.URL.createObjectURL(blob)
-    console.log(url)
-    console.log(selectedSentenceID)
     let audioEle = document.querySelector(
       `[data-id='${selectedSentenceID.value}'] audio`
     ) as HTMLAudioElement
-    audioEle.src = url
-    console.log(audioEle)
+    if (audioEle) {
+      audioEle.src = window.URL.createObjectURL(blob)
+    } else {
+      alert('A sentence must be selected to record.')
+    }
+
+    chunks = []
   }
 
   navigator.mediaDevices
@@ -69,11 +71,10 @@ if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       })
 
       // Audio pipeline
-      source.connect(dest)
-      // source.connect(gainNode)
-      // gainNode.connect(delayNode)
-      // delayNode.connect(compressorNode)
-      // compressorNode.connect(dest)
+      source.connect(gainNode)
+      gainNode.connect(delayNode)
+      delayNode.connect(compressorNode)
+      compressorNode.connect(dest)
     })
     .catch((err) => {
       console.error(`> The following getUserMedia error occurred: ${err}`)
@@ -84,9 +85,19 @@ if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
 }
 
 const startRecording = () => {
-  store.recordingState = RecordingState.Recording
-  mediaRecorder.start()
-  console.log('RECORDING STARTED')
+  let originalState = (store.recordingState = RecordingState.Recording)
+  ctx
+    .resume()
+    .then(() => {
+      store.recordingState = RecordingState.Recording
+      mediaRecorder.start()
+      console.log('RECORDING STARTED', ctx.state)
+    })
+    .catch((e) => {
+      store.recordingState = originalState
+      alert('Recording could not be started')
+      console.log(e)
+    })
 }
 
 const stopRecording = () => {
