@@ -34,11 +34,16 @@ if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
 
   mediaRecorder.onstop = () => {
     const blob = new Blob(chunks, { type: 'audio/webm;codecs=opus' })
-    let audioEle = document.querySelector(
-      `[data-id='${selectedSentenceID.value}'] audio`
-    ) as HTMLAudioElement
-    if (audioEle) {
-      audioEle.src = window.URL.createObjectURL(blob)
+    console.log(blob)
+    if (blob.size === 0) {
+      alert('Sound could not be recorded. The blob is empty.')
+      return
+    }
+    let selectedSentence = sentences.value.find((s) => s.id === selectedSentenceID.value)
+    if (selectedSentence) {
+      selectedSentence.audio_src = window.URL.createObjectURL(blob)
+      console.log('set audio srcd', selectedSentence.audio_src)
+      sentences.value = sentences.value.slice()
     } else {
       alert('A sentence must be selected to record.')
     }
@@ -141,6 +146,7 @@ const selectSentence = (e: Event) => {
         <th>Sentence</th>
         <th>Audio</th>
         <th>Export</th>
+        <th>Download</th>
       </thead>
       <tbody>
         <SentenceItem
@@ -150,6 +156,7 @@ const selectSentence = (e: Event) => {
           :key="sentence.id"
           :id="sentence.id"
           :text="sentence.text"
+          :audioSrc="sentence.audio_src"
         />
       </tbody>
     </table>

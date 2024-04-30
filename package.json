@@ -16,6 +16,7 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "feather-icons": "^4.29.1",
     "vue": "^3.4.21"
   },
   "devDependencies": {
