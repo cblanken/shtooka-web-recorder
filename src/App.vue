@@ -33,7 +33,7 @@ const startRecording = async () => {
     ctx.audioWorklet
       .addModule('worklets/recording.js')
       .then(() => {
-        recorder = new AudioWorkletNode(ctx, 'tato-audio-processor', {})
+        recorder = new AudioWorkletNode(ctx, 'tato-audio-recorder', {})
 
         // Audio nodes
         let gainElement = document.querySelector('#audio-gain') as HTMLInputElement
@@ -55,8 +55,11 @@ const startRecording = async () => {
         })
 
         recorder.port.onmessage = (e) => {
-          // console.log(e.data)
-          chunks.push(e.data)
+          if (e.data.command === 'exportWAVData') {
+            console.log('MAIN THREAD EXPORTED WAV')
+            let blob = new Blob([e.data.dataview], { type: e.data.type })
+            saveWav(blob)
+          }
         }
 
         // Audio pipeline
@@ -65,6 +68,9 @@ const startRecording = async () => {
         delayNode.connect(compressorNode)
         compressorNode.connect(recorder)
         recorder.connect(ctx.destination)
+
+        recorder.port.postMessage({ command: 'init', config: { sampleRate: ctx.sampleRate } })
+        recorder.port.postMessage({ command: 'start' })
       })
       .catch((err) => {
         console.error(`> The following getUserMedia error occurred: ${err}`)
@@ -78,9 +84,11 @@ const startRecording = async () => {
   console.log('RECORDING STARTED', ctx.state)
 }
 
-const saveWav = () => {
-  const blob = new Blob(chunks, { type: 'audio/wav' })
-  console.log(blob)
+const exportWAV = (mimeType: string = 'audio/wav') => {
+  recorder.port.postMessage({ command: 'exportWAV', type: mimeType })
+}
+
+const saveWav = (blob: Blob) => {
   if (blob.size === 0) {
     alert('Sound file could not be saved. No recorded data.')
     return
@@ -96,12 +104,10 @@ const saveWav = () => {
 
 const stopRecording = () => {
   microphone.getTracks().forEach((track) => track.stop())
+  exportWAV()
   recorder.disconnect()
-  recorder.port.postMessage('stop')
+  recorder.port.postMessage({ command: 'stop' })
   store.recordingState = RecordingState.Idle
-  console.log('RECORDING STOPPED')
-
-  // saveWav()
 }
 
 let selectedSentenceID = ref('')
@@ -111,6 +117,7 @@ const selectSentence = (e: Event) => {
 </script>
 
 <template>
+  <!-- Header (Tatoeba/Github links) -->
   <header class="text-3xl">
     <h1>Tatoeba Web Recorder</h1>
     <!-- Tatoeba list URL or ID search -->
@@ -154,5 +161,4 @@ const selectSentence = (e: Event) => {
       </tbody>
     </table>
   </main>
-  <!-- Header (Tatoeba/Github links) -->
 </template>
