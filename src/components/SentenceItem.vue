@@ -18,7 +18,7 @@ defineProps({
     <td class="align-middle">
       <a
         v-if="$props.audioSrc && $props.audioSrc.length > 0"
-        :download="`${$props.id} - ${$props.text}.webm`"
+        :download="`${$props.id} - ${$props.text}`"
         :href="$props.audioSrc"
         @click="$emit('download')"
         ><IconDownload class="text-green-400 d-block m-auto"

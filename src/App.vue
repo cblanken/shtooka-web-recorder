@@ -20,51 +20,20 @@ const sentences = ref(new Array<Sentence>())
 
 const ctx = new AudioContext()
 // let mediaRecorder: MediaRecorder
-let stream: MediaStream
-let worklet: AudioWorkletNode
+let microphone: MediaStream
+let recorder: AudioWorkletNode
+let chunks: BlobPart[] = []
 const startRecording = async () => {
   await ctx.resume()
-
-  // mediaRecorder.start()
-
   if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-    // TODO: add toast message
     console.log('> getUserMedia supported')
-    // const dest = ctx.createMediaStreamDestination()
-    // mediaRecorder = new MediaRecorder(dest.stream, { mimeType: 'audio/webm;codecs=opus' })
-
-    // Configure MediaRecorder
-    // let chunks: Blob[] = []
-    // mediaRecorder.ondataavailable = (e) => {
-    //   chunks.push(e.data)
-    // }
-
-    // mediaRecorder.onstop = () => {
-    //   const blob = new Blob(chunks, { type: 'audio/webm;codecs=opus' })
-    //   console.log(blob)
-    //   if (blob.size === 0) {
-    //     alert('Sound could not be recorded. The blob is empty.')
-    //     return
-    //   }
-    //   let selectedSentence = sentences.value.find((s) => s.id === selectedSentenceID.value)
-    //   if (selectedSentence) {
-    //     selectedSentence.audio_src = window.URL.createObjectURL(blob)
-    //     console.log('set audio srcd', selectedSentence.audio_src)
-    //     sentences.value = sentences.value.slice()
-    //   } else {
-    //     alert('A sentence must be selected to record.')
-    //   }
-
-    //   chunks = []
-    // }
-
-    stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-    const source = ctx.createMediaStreamSource(stream)
+    microphone = await navigator.mediaDevices.getUserMedia({ audio: true })
+    const source = ctx.createMediaStreamSource(microphone)
 
     ctx.audioWorklet
       .addModule('worklets/recording.js')
       .then(() => {
-        worklet = new AudioWorkletNode(ctx, 'tato-audio-processor', {})
+        recorder = new AudioWorkletNode(ctx, 'tato-audio-processor', {})
 
         // Audio nodes
         let gainElement = document.querySelector('#audio-gain') as HTMLInputElement
@@ -85,16 +54,17 @@ const startRecording = async () => {
           release: 0.25
         })
 
-        worklet.port.onmessage = (e) => {
-          console.log(e.data[0])
+        recorder.port.onmessage = (e) => {
+          // console.log(e.data)
+          chunks.push(e.data)
         }
 
         // Audio pipeline
         source.connect(gainNode)
         gainNode.connect(delayNode)
         delayNode.connect(compressorNode)
-        compressorNode.connect(worklet)
-        worklet.connect(ctx.destination)
+        compressorNode.connect(recorder)
+        recorder.connect(ctx.destination)
       })
       .catch((err) => {
         console.error(`> The following getUserMedia error occurred: ${err}`)
@@ -108,12 +78,30 @@ const startRecording = async () => {
   console.log('RECORDING STARTED', ctx.state)
 }
 
+const saveWav = () => {
+  const blob = new Blob(chunks, { type: 'audio/wav' })
+  console.log(blob)
+  if (blob.size === 0) {
+    alert('Sound file could not be saved. No recorded data.')
+    return
+  }
+  let selectedSentence = sentences.value.find((s) => s.id === selectedSentenceID.value)
+  if (selectedSentence) {
+    selectedSentence.audio_src = window.URL.createObjectURL(blob)
+    sentences.value = sentences.value.slice()
+  } else {
+    alert('A sentence must be selected to record.')
+  }
+}
+
 const stopRecording = () => {
-  stream.getTracks().forEach((track) => track.stop())
-  worklet.disconnect()
-  worklet.port.close()
+  microphone.getTracks().forEach((track) => track.stop())
+  recorder.disconnect()
+  recorder.port.postMessage('stop')
   store.recordingState = RecordingState.Idle
   console.log('RECORDING STOPPED')
+
+  // saveWav()
 }
 
 let selectedSentenceID = ref('')
