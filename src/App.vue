@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import DownloadButton from '@/components/DownloadAllButton.vue'
+import ExportButton from '@/components/DownloadAllButton.vue'
 import RecordButton from '@/components/RecordButton.vue'
 import SentenceImporter from '@/components/SentenceImporter.vue'
 import SentenceItem from '@/components/SentenceItem.vue'
@@ -22,7 +22,6 @@ const ctx = new AudioContext()
 // let mediaRecorder: MediaRecorder
 let microphone: MediaStream
 let recorder: AudioWorkletNode
-let chunks: BlobPart[] = []
 const startRecording = async () => {
   await ctx.resume()
   if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -114,6 +113,16 @@ let selectedSentenceID = ref('')
 const selectSentence = (e: Event) => {
   selectedSentenceID.value = (e.currentTarget as HTMLLIElement).getAttribute('data-id') || ''
 }
+
+const toggleSentenceExportCheckbox = (id: string) => {
+  let sentence = sentences.value.find((s) => s.id === id)
+  if (sentence) {
+    sentence.export_enabled = !sentence.export_enabled
+  } else {
+    // Unknown sentence ID
+    console.log(`Unknown sentence ID. Could not enable export for sentence with the id "${id}".`)
+  }
+}
 </script>
 
 <template>
@@ -130,7 +139,7 @@ const selectSentence = (e: Event) => {
         @stop="stopRecording"
         :recordingState="store.recordingState"
       />
-      <DownloadButton />
+      <ExportButton />
     </div>
     <SentenceImporter
       @add_sentences="
@@ -152,11 +161,13 @@ const selectSentence = (e: Event) => {
         <SentenceItem
           :class="selectedSentenceID === sentence.id ? 'selected-sentence' : ''"
           @click="selectSentence"
+          @toggle_checkbox="(id: string) => toggleSentenceExportCheckbox(id)"
           v-for="sentence in sentences"
           :key="sentence.id"
           :id="sentence.id"
           :text="sentence.text"
           :audioSrc="sentence.audio_src"
+          :exportEnabled="sentence.export_enabled"
         />
       </tbody>
     </table>
