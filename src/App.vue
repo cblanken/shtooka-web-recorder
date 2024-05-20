@@ -10,6 +10,7 @@ import { store } from '@/store'
 import * as zip from '@zip.js/zip.js'
 
 const sentences = ref(new Array<Sentence>())
+let selectedSentenceID = ref()
 const exportURL = ref()
 const exportAnchor = ref()
 
@@ -26,6 +27,14 @@ const ctx = new AudioContext()
 let microphone: MediaStream
 let recorder: AudioWorkletNode
 const startRecording = async () => {
+  if (!selectedSentenceID.value) {
+    alert(
+      `A sentence must be selected to begin recording. Please upload a sentence file if you have not does so already.`
+    )
+
+    return
+  }
+
   await ctx.resume()
   if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
     console.log('> getUserMedia supported')
@@ -100,7 +109,7 @@ const updateSentenceRecording = (blob: Blob) => {
     selectedSentence.export_enabled = true
     sentences.value = sentences.value.slice()
   } else {
-    alert('A sentence must be selected to record.')
+    alert(`The sentence with id ${selectedSentenceID.value} could not be found.`)
   }
 }
 
@@ -112,7 +121,6 @@ const stopRecording = () => {
   store.recordingState = RecordingState.Idle
 }
 
-let selectedSentenceID = ref('')
 const selectSentence = (e: Event) => {
   selectedSentenceID.value = (e.currentTarget as HTMLLIElement).getAttribute('data-id') || ''
 }
