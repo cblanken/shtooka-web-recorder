@@ -155,7 +155,7 @@ const zipAudios = async (e: Event) => {
   const zipBlob = await blobWriter.getData()
   let zipURL = URL.createObjectURL(zipBlob)
   exportURL.value = zipURL
-  console.log(exportURL.value)
+  exportAnchor.value.setAttribute('href', zipURL)
   exportAnchor.value.click()
   zipWriter = null
 }
@@ -176,7 +176,7 @@ const zipAudios = async (e: Event) => {
         :recordingState="store.recordingState"
       />
       <ExportButton @click="zipAudios" />
-      <a ref="exportAnchor" :href="exportURL" download="tato_audio.zip" hidden>wav</a>
+      <a ref="exportAnchor" download="tato_audio.zip" hidden></a>
     </div>
     <SentenceImporter
       @add_sentences="
