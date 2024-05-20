@@ -163,13 +163,9 @@ const zipAudios = async (e: Event) => {
 
 <template>
   <!-- Header (Tatoeba/Github links) -->
-  <header class="text-3xl">
-    <h1>Tatoeba Web Recorder</h1>
-    <!-- Tatoeba list URL or ID search -->
-  </header>
 
-  <main>
-    <div class="flex gap-2">
+  <main class="flex flex-col gap-2">
+    <div class="flex gap-2 sticky top-0 z-50 bg-slate-700 justify-end px-2">
       <RecordButton
         @start="startRecording"
         @stop="stopRecording"
