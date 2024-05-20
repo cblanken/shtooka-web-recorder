@@ -16,6 +16,7 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@zip.js/zip.js": "^2.7.44",
     "feather-icons": "^4.29.1",
     "vue": "^3.4.21"
   },

@@ -7,8 +7,11 @@ import { Sentence } from '@/types/sentence'
 import { RecordingState } from '@/types/audio'
 import { ref } from 'vue'
 import { store } from '@/store'
+import * as zip from '@zip.js/zip.js'
 
 const sentences = ref(new Array<Sentence>())
+const exportURL = ref()
+const exportAnchor = ref()
 
 /*
  *  # AUDIO RECORDING AND PROCESSING
@@ -55,9 +58,8 @@ const startRecording = async () => {
 
         recorder.port.onmessage = (e) => {
           if (e.data.command === 'exportWAVData') {
-            console.log('MAIN THREAD EXPORTED WAV')
             let blob = new Blob([e.data.dataview], { type: e.data.type })
-            saveWav(blob)
+            updateSentenceRecording(blob)
           }
         }
 
@@ -80,14 +82,14 @@ const startRecording = async () => {
   }
 
   store.recordingState = RecordingState.Recording
-  console.log('RECORDING STARTED', ctx.state)
 }
 
 const exportWAV = (mimeType: string = 'audio/wav') => {
   recorder.port.postMessage({ command: 'exportWAV', type: mimeType })
 }
 
-const saveWav = (blob: Blob) => {
+const updateSentenceRecording = (blob: Blob) => {
+  // Update link to audio file blob
   if (blob.size === 0) {
     alert('Sound file could not be saved. No recorded data.')
     return
@@ -95,6 +97,7 @@ const saveWav = (blob: Blob) => {
   let selectedSentence = sentences.value.find((s) => s.id === selectedSentenceID.value)
   if (selectedSentence) {
     selectedSentence.audio_src = window.URL.createObjectURL(blob)
+    selectedSentence.export_enabled = true
     sentences.value = sentences.value.slice()
   } else {
     alert('A sentence must be selected to record.')
@@ -123,6 +126,31 @@ const toggleSentenceExportCheckbox = (id: string) => {
     console.log(`Unknown sentence ID. Could not enable export for sentence with the id "${id}".`)
   }
 }
+
+const zipAudios = async (e: Event) => {
+  let selected_sentences = sentences.value.filter((s) => s.export_enabled)
+
+  // Initialize zipWriter
+  let blobWriter: zip.BlobWriter = new zip.BlobWriter('application/zip')
+  let zipWriter: zip.ZipWriter = new zip.ZipWriter(blobWriter, { bufferedWrite: true })
+
+  // Zip audio files
+  for (let i = 0; i < selected_sentences.length; i++) {
+    let s = selected_sentences[i]
+    let filename = `${s.id} - ${s.text}.wav`
+    let blob = await fetch(s.audio_src || '').then((r) => r.blob())
+    await zipWriter.add(filename, new zip.BlobReader(blob))
+  }
+
+  // Create zip URL
+  await zipWriter.close()
+  const zipBlob = await blobWriter.getData()
+  let zipURL = URL.createObjectURL(zipBlob)
+  exportURL.value = zipURL
+  console.log(exportURL.value)
+  exportAnchor.value.click()
+  zipWriter = null
+}
 </script>
 
 <template>
@@ -139,7 +167,8 @@ const toggleSentenceExportCheckbox = (id: string) => {
         @stop="stopRecording"
         :recordingState="store.recordingState"
       />
-      <ExportButton />
+      <ExportButton @click="zipAudios" />
+      <a ref="exportAnchor" :href="exportURL" download="tato_audio.zip" hidden>wav</a>
     </div>
     <SentenceImporter
       @add_sentences="

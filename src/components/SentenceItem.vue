@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import IconDownload from './icons/IconDownload.vue'
-const emit = defineEmits<{
+defineEmits<{
   download: []
   toggle_checkbox: [value: string]
 }>()
