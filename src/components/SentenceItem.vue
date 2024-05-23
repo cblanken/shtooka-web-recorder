@@ -9,6 +9,7 @@ defineProps({
   id: { type: String, required: true },
   text: { type: String, required: true },
   exportEnabled: { type: Boolean, required: true },
+  ext: { type: String, required: true },
   audioSrc: { type: String }
 })
 </script>
@@ -30,7 +31,7 @@ defineProps({
     <td class="align-middle">
       <a
         v-if="$props.audioSrc && $props.audioSrc.length > 0"
-        :download="`${$props.id} - ${$props.text}`"
+        :download="`${$props.id} - ${$props.text}.${$props.ext}`"
         :href="$props.audioSrc"
         ><IconDownload class="text-green-400 d-block m-auto"
       /></a>

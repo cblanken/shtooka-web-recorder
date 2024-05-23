@@ -138,6 +138,11 @@ const toggleSentenceExportCheckbox = (id: string) => {
 const zipAudios = async (e: Event) => {
   let selected_sentences = sentences.value.filter((s) => s.export_enabled)
 
+  if (selected_sentences.length <= 0) {
+    alert('The Export option must be enabled for at least one sentence to export.')
+    return
+  }
+
   // Initialize zipWriter
   let blobWriter: zip.BlobWriter = new zip.BlobWriter('application/zip')
   let zipWriter: zip.ZipWriter = new zip.ZipWriter(blobWriter, { bufferedWrite: true })
@@ -201,6 +206,7 @@ const zipAudios = async (e: Event) => {
           :text="sentence.text"
           :audioSrc="sentence.audio_src"
           :exportEnabled="sentence.export_enabled"
+          ext="wav"
         />
       </tbody>
     </table>
