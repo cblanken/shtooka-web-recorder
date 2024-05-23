@@ -5,7 +5,7 @@
 
 @layer base {
   .btn {
-    @apply w-fit px-4 py-2 my-2 rounded-full text-lg text-black font-semibold;
+    @apply w-fit px-4 py-2 my-2 rounded-full text-lg text-black font-semibold disabled:brightness-75;
   }
 
   .btn-wide {

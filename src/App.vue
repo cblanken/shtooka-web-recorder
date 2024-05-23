@@ -135,8 +135,12 @@ const toggleSentenceExportCheckbox = (id: string) => {
   }
 }
 
+const getExportEnabledSentences = () => {
+  return sentences.value.filter((s) => s.export_enabled)
+}
+
 const zipAudios = async (e: Event) => {
-  let selected_sentences = sentences.value.filter((s) => s.export_enabled)
+  let selected_sentences = getExportEnabledSentences()
 
   if (selected_sentences.length <= 0) {
     alert('The Export option must be enabled for at least one sentence to export.')
@@ -168,20 +172,20 @@ const zipAudios = async (e: Event) => {
 
 <template>
   <!-- Header (Tatoeba/Github links) -->
-
+  <header class="flex justify-between items-center gap-2 sticky top-0 z-50 bg-slate-700 px-4 mb-2">
+    <h1 class="text-2xl">Tato Web Recorder</h1>
+    <div class="flex gap-2">
+      <RecordButton
+        @start="startRecording"
+        @stop="stopRecording"
+        :recordingState="store.recordingState"
+        :disabled="!selectedSentenceID"
+      />
+      <ExportButton @click="zipAudios" :disabled="getExportEnabledSentences().length === 0" />
+      <a ref="exportAnchor" download="tato_audio.zip" hidden></a>
+    </div>
+  </header>
   <main class="flex flex-col gap-2">
-    <header class="flex justify-between items-center gap-2 sticky top-0 z-50 bg-slate-700 px-4">
-      <h1 class="text-2xl">Tato Web Recorder</h1>
-      <div class="flex gap-2">
-        <RecordButton
-          @start="startRecording"
-          @stop="stopRecording"
-          :recordingState="store.recordingState"
-        />
-        <ExportButton @click="zipAudios" />
-        <a ref="exportAnchor" download="tato_audio.zip" hidden></a>
-      </div>
-    </header>
     <SentenceImporter
       @add_sentences="
         (s: any[]) => {
