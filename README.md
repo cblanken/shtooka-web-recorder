@@ -1,6 +1,8 @@
 # tato-web-recorder
 A web recorder for contributing audio to [Tatoeba](https://tatoeba.org)
 
+Check out the live build at [https://www.cblanken.dev/tato-web-recorder/](https://www.cblanken.dev/tato-web-recorder/)
+
 ## Development
 
 ```sh
