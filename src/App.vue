@@ -145,7 +145,7 @@ const zipAudios = async (e: Event) => {
 
   // Initialize zipWriter
   let blobWriter: zip.BlobWriter = new zip.BlobWriter('application/zip')
-  let zipWriter: zip.ZipWriter = new zip.ZipWriter(blobWriter, { bufferedWrite: true })
+  let zipWriter: zip.ZipWriter<Blob> | null = new zip.ZipWriter(blobWriter, { bufferedWrite: true })
 
   // Zip audio files
   for (let i = 0; i < selected_sentences.length; i++) {
@@ -170,15 +170,18 @@ const zipAudios = async (e: Event) => {
   <!-- Header (Tatoeba/Github links) -->
 
   <main class="flex flex-col gap-2">
-    <div class="flex gap-2 sticky top-0 z-50 bg-slate-700 justify-end px-2">
-      <RecordButton
-        @start="startRecording"
-        @stop="stopRecording"
-        :recordingState="store.recordingState"
-      />
-      <ExportButton @click="zipAudios" />
-      <a ref="exportAnchor" download="tato_audio.zip" hidden></a>
-    </div>
+    <header class="flex justify-between items-center gap-2 sticky top-0 z-50 bg-slate-700 px-4">
+      <h1 class="text-2xl">Tato Web Recorder</h1>
+      <div class="flex gap-2">
+        <RecordButton
+          @start="startRecording"
+          @stop="stopRecording"
+          :recordingState="store.recordingState"
+        />
+        <ExportButton @click="zipAudios" />
+        <a ref="exportAnchor" download="tato_audio.zip" hidden></a>
+      </div>
+    </header>
     <SentenceImporter
       @add_sentences="
         (s: any[]) => {
