@@ -16,6 +16,7 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@sapphi-red/web-noise-suppressor": "^0.3.5",
     "@zip.js/zip.js": "^2.7.44",
     "feather-icons": "^4.29.1",
     "vue": "^3.4.21"

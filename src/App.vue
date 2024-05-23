@@ -8,6 +8,9 @@ import { RecordingState } from '@/types/audio'
 import { ref } from 'vue'
 import { store } from '@/store'
 import * as zip from '@zip.js/zip.js'
+import { SpeexWorkletNode, loadSpeex } from '@sapphi-red/web-noise-suppressor'
+import speexWorkletPath from '@sapphi-red/web-noise-suppressor/speexWorklet.js?url'
+import speexWasmPath from '@sapphi-red/web-noise-suppressor/speex.wasm?url'
 
 const sentences = ref(new Array<Sentence>())
 let selectedSentenceID = ref()
@@ -23,9 +26,28 @@ const exportAnchor = ref()
  */
 
 const ctx = new AudioContext()
-// let mediaRecorder: MediaRecorder
 let microphone: MediaStream
 let recorder: AudioWorkletNode
+
+// Audio nodes
+const gainNode = new GainNode(ctx, {
+  gain: store.defaultGain
+})
+
+const delayNode = new DelayNode(ctx, {
+  delayTime: 0,
+  maxDelayTime: 1
+})
+
+const compressorNode = new DynamicsCompressorNode(ctx, {
+  threshold: -50,
+  knee: 40,
+  ratio: 12,
+  // reduction: -20,
+  attack: 0,
+  release: 0.25
+})
+
 const startRecording = async () => {
   if (!selectedSentenceID.value) {
     alert(
@@ -35,6 +57,14 @@ const startRecording = async () => {
     return
   }
 
+  // Setup noise suppression
+  const speexWasmBinary = await loadSpeex({ url: String(speexWasmPath) })
+  await ctx.audioWorklet.addModule(String(speexWorkletPath))
+  const speex = new SpeexWorkletNode(ctx, {
+    wasmBinary: speexWasmBinary,
+    maxChannels: 2
+  })
+
   await ctx.resume()
   if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
     console.log('> getUserMedia supported')
@@ -43,47 +73,34 @@ const startRecording = async () => {
 
     ctx.audioWorklet
       .addModule('worklets/recording.js')
-      .then(() => {
+      .then(async () => {
+        // Setup recorder
         recorder = new AudioWorkletNode(ctx, 'tato-audio-recorder', {})
-
-        // Audio nodes
-        let gainElement = document.querySelector('#audio-gain') as HTMLInputElement
-        let gain: number = parseInt(gainElement?.value) || 0.5
-        const gainNode = new GainNode(ctx, {
-          gain: gain
-        })
-        const delayNode = new DelayNode(ctx, {
-          delayTime: 0,
-          maxDelayTime: 1
-        })
-        const compressorNode = new DynamicsCompressorNode(ctx, {
-          threshold: -50,
-          knee: 40,
-          ratio: 12,
-          // reduction: -20,
-          attack: 0,
-          release: 0.25
-        })
-
         recorder.port.onmessage = (e) => {
           if (e.data.command === 'exportWAVData') {
             let blob = new Blob([e.data.dataview], { type: e.data.type })
             updateSentenceRecording(blob)
           }
         }
+        recorder.port.postMessage({ command: 'init', config: { sampleRate: ctx.sampleRate } })
+        recorder.port.postMessage({ command: 'start' })
+
+        // Update gain
+        let gainElement = document.querySelector('#audio-gain') as HTMLInputElement
+        if (gainElement && gainElement.value) {
+          gainNode.gain.value = parseInt(gainElement?.value)
+        }
 
         // Audio pipeline
-        source.connect(gainNode)
+        source.connect(speex)
+        speex.connect(gainNode)
         gainNode.connect(delayNode)
         delayNode.connect(compressorNode)
         compressorNode.connect(recorder)
         recorder.connect(ctx.destination)
-
-        recorder.port.postMessage({ command: 'init', config: { sampleRate: ctx.sampleRate } })
-        recorder.port.postMessage({ command: 'start' })
       })
       .catch((err) => {
-        console.error(`> The following getUserMedia error occurred: ${err}`)
+        console.error(`Unable to preprocess audio. Error: ${err}`)
       })
   } else {
     console.log('> getUserMedia is not supported in this browser')
