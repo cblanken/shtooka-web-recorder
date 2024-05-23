@@ -48,6 +48,10 @@ const compressorNode = new DynamicsCompressorNode(ctx, {
   release: 0.25
 })
 
+window.onbeforeunload = () => {
+  return confirm()
+}
+
 const startRecording = async () => {
   if (!selectedSentenceID.value) {
     alert(
