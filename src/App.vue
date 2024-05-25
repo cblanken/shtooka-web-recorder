@@ -83,7 +83,7 @@ const startRecording = async () => {
         recorder.port.onmessage = (e) => {
           if (e.data.command === 'exportWAVData') {
             let blob = new Blob([e.data.dataview], { type: e.data.type })
-            updateSentenceRecording(blob)
+            createSelectedSentenceRecording(blob)
           }
         }
         recorder.port.postMessage({ command: 'init', config: { sampleRate: ctx.sampleRate } })
@@ -96,12 +96,7 @@ const startRecording = async () => {
         }
 
         // Audio pipeline
-        source.connect(speex)
-        speex.connect(gainNode)
-        gainNode.connect(delayNode)
-        delayNode.connect(compressorNode)
-        compressorNode.connect(recorder)
-        recorder.connect(ctx.destination)
+        source.connect(recorder).connect(speex).connect(ctx.destination)
       })
       .catch((err) => {
         console.error(`Unable to preprocess audio. Error: ${err}`)
@@ -118,7 +113,7 @@ const exportWAV = (mimeType: string = 'audio/wav') => {
   recorder.port.postMessage({ command: 'exportWAV', type: mimeType })
 }
 
-const updateSentenceRecording = (blob: Blob) => {
+const createSelectedSentenceRecording = (blob: Blob) => {
   // Update link to audio file blob
   if (blob.size === 0) {
     alert('Sound file could not be saved. No recorded data.')
@@ -126,6 +121,12 @@ const updateSentenceRecording = (blob: Blob) => {
   }
   let selectedSentence = sentences.value.find((s) => s.id === selectedSentenceID.value)
   if (selectedSentence) {
+    // Free existing ObjectURL if a recording already exists for the target sentence
+    if (selectedSentence.audio_src) {
+      URL.revokeObjectURL(selectedSentence.audio_src)
+    }
+
+    // Update sentence data and recording URL
     selectedSentence.audio_src = window.URL.createObjectURL(blob)
     selectedSentence.export_enabled = true
     sentences.value = sentences.value.slice()
@@ -187,7 +188,28 @@ const zipAudios = async (e: Event) => {
   exportURL.value = zipURL
   exportAnchor.value.setAttribute('href', zipURL)
   exportAnchor.value.click()
+  freeZipUrl()
   zipWriter = null
+}
+
+const freeAllRecordingUrls = () => {
+  sentences.value.forEach((url) => {
+    if (url.audio_src) {
+      URL.revokeObjectURL(url.audio_src)
+    }
+  })
+}
+
+const freeZipUrl = () => {
+  let zipURL = exportAnchor.value.getAttribute('href')
+  URL.revokeObjectURL(zipURL)
+}
+
+const load_sentences = (s: any[]) => {
+  freeAllRecordingUrls()
+  freeZipUrl()
+  sentences.value = s
+  selectedSentenceID.value = s[0].id
 }
 </script>
 
@@ -207,14 +229,7 @@ const zipAudios = async (e: Event) => {
     </div>
   </header>
   <main class="flex flex-col gap-2">
-    <SentenceImporter
-      @add_sentences="
-        (s: any[]) => {
-          sentences = s
-          selectedSentenceID = s[0].id
-        }
-      "
-    />
+    <SentenceImporter @load_sentences="load_sentences" />
     <table class="table" v-if="sentences.length > 0">
       <thead>
         <th>ID</th>

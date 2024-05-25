@@ -6,7 +6,7 @@ import { URL } from 'node:url';
 import { Sentence } from '../types/sentence'
 
 const emit = defineEmits<{
-  add_sentences: any[]
+  load_sentences: any[]
 }>()
 
 async function loadShtookaFile(e: Event) {
@@ -24,7 +24,7 @@ async function loadShtookaFile(e: Event) {
           sentences.push(sentence)
         })
 
-        emit('add_sentences', sentences)
+        emit('load_sentences', sentences)
       }
     }
   } catch (e) {
