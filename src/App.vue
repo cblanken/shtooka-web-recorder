@@ -57,8 +57,16 @@ const startRecording = async () => {
     alert(
       `A sentence must be selected to begin recording. Please upload a sentence file if you have not does so already.`
     )
-
     return
+  } else if (sentences.value.find((s) => s.id === selectedSentenceID.value)?.audio_src) {
+    if (
+      !confirm(
+        "A recording already exists for this sentence.\n\
+        Are you sure you'd like to replace it?"
+      )
+    ) {
+      return
+    }
   }
 
   // Setup noise suppression
